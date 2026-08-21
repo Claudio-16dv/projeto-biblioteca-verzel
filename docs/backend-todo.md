@@ -6,15 +6,16 @@
 |---|---|---|
 | 1 | Organização | Feature modules (`src/books/`, `src/loans/`, `src/users/`) |
 | 2 | ORM | Prisma — sem pasta `models/`, os tipos são gerados |
-| 3 | Banco | PostgreSQL em Docker; API roda no host |
+| 3 | Execucao | Stack inteira em Docker (db, backend, frontend) com bind mount e hot reload |
 | 4 | Cópias | `totalCopies` imutável + `availableCopies` mutável |
 | 5 | Situação do empréstimo | Derivada de `returnedAt` (sem campo `status`) |
 | 6 | Usuário | Entidade `User` + seed |
 | 7 | Período do BIBL-4 | Filtra `loanedAt` |
 | 8 | Ranking | Só livros com ≥ 1 empréstimo |
-| 9 | Porta da API | 3001 (3000 é do Next) |
+| 9 | Portas | `WEB_PORT`, `API_PORT` e `DB_PORT` no `.env` (defaults 3000/3001/5432) |
 | 10 | Validação | DTO + `class-validator` + `ValidationPipe` global |
 | 11 | Erros | `HttpException` + Exception Filter |
+| 12 | Versao do Prisma | 6.x — a 7 removeu `url` do datasource e exige `prisma.config.ts` |
 
 ## Estrutura
 
@@ -37,20 +38,41 @@ backend/
 
 ## Fase 0 — Base
 
-- [ ] `nest new backend --package-manager npm`
-- [ ] `main.ts` — `app.enableCors({ origin: 'http://localhost:3000', exposedHeaders: ['Content-Disposition'] })`
-- [ ] `main.ts` — `app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))`
-- [ ] `main.ts` — `await app.listen(3001)`
-- [ ] `common/filters/http-exception.filter.ts`
-  - [ ] normalizar `message` para string — o `ValidationPipe` devolve array, `HttpException` devolve string
-- [ ] `docker-compose.yml` — serviço `postgres` com volume nomeado
-- [ ] `.env.example` (`DATABASE_URL`, `PORT=3001`) · `.gitignore` · `.dockerignore`
-- [ ] `npm i prisma @prisma/client` + `npx prisma init --datasource-provider postgresql`
-- [ ] `prisma/schema.prisma`
-- [ ] `npx prisma migrate dev --name init`
-- [ ] `PrismaService extends PrismaClient` + `PrismaModule` global
-- [ ] `prisma/seed.ts` — 8 livros + 3 leitores, registrado no `package.json`
-- [ ] `nest g resource users` — `@Get('/users')` → `[{ id, name }]` (front escolhe o leitor)
+- [x] `nest new backend --package-manager npm`
+- [x] `main.ts` — `enableCors` com origem em `CORS_ORIGIN` e `exposedHeaders: ['Content-Disposition']`
+- [x] `main.ts` — `app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))`
+- [x] `main.ts` — `app.listen(process.env.PORT ?? 3000)`; o host expoe em `API_PORT`
+- [x] `common/filters/http-exception.filter.ts`
+  - [x] normalizar `message` para string — o `ValidationPipe` devolve array, `HttpException` devolve string
+- [x] `docker-compose.yml` — `db`, `backend` e `frontend`, com volume nomeado no Postgres
+- [x] `.env.example` · `.gitignore` · `.dockerignore`
+- [x] `npm i prisma@^6 @prisma/client@^6 class-validator class-transformer`
+- [x] `prisma/schema.prisma`
+- [x] `npx prisma migrate dev --name init`
+- [x] `PrismaService extends PrismaClient` + `PrismaModule` global
+- [x] `prisma/seed.ts` — 8 livros + 3 leitores, registrado no `package.json`
+- [x] `nest g resource users` — `@Get('/users')` → `[{ id, name }]` (front escolhe o leitor)
+
+### Comandos
+
+O `node_modules` do backend vive num volume anonimo, entao `npm i` rodado no
+host nao chega no container. Instalar dependencia e sempre nesta ordem:
+
+```bash
+npm i --package-lock-only <pacote> --prefix backend   # atualiza package.json e lock
+docker compose build backend                          # o npm ci da imagem instala
+docker compose up -d
+```
+
+```bash
+docker compose up -d                                     # sobe a stack
+docker compose exec backend npx prisma migrate dev       # nova migration
+docker compose exec backend npm run seed                 # recarrega o acervo
+docker compose logs -f backend                           # acompanha
+```
+
+Se alguma porta estiver ocupada na sua maquina, ajuste `WEB_PORT`, `API_PORT`
+ou `DB_PORT` no `.env` — `CORS_ORIGIN` e `NEXT_PUBLIC_API_URL` acompanham.
 
 ### Schema
 
