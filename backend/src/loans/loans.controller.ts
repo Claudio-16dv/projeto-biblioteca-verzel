@@ -34,7 +34,9 @@ export class LoansController {
   ) {}
 
   @Post()
-  @ApiOperation({ summary: 'Registra um empréstimo e baixa uma cópia do livro' })
+  @ApiOperation({
+    summary: 'Registra um empréstimo e baixa uma cópia do livro',
+  })
   @ApiCreatedResponse({ type: LoanResponseDto })
   @ApiConflictResponse({
     description:
@@ -83,8 +85,14 @@ export class LoansController {
   @Patch(':id/return')
   @ApiOperation({ summary: 'Encerra o empréstimo e devolve a cópia ao acervo' })
   @ApiOkResponse({ type: LoanResponseDto })
-  @ApiConflictResponse({ description: 'Empréstimo já devolvido', type: ApiErrorDto })
-  @ApiNotFoundResponse({ description: 'Empréstimo inexistente', type: ApiErrorDto })
+  @ApiConflictResponse({
+    description: 'Empréstimo já devolvido',
+    type: ApiErrorDto,
+  })
+  @ApiNotFoundResponse({
+    description: 'Empréstimo inexistente',
+    type: ApiErrorDto,
+  })
   returnLoan(@Param('id', ParseIntPipe) id: number) {
     return this.loansService.returnLoan(id);
   }

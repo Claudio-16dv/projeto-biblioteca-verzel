@@ -22,7 +22,9 @@ async function bootstrap() {
 
   const docs = new DocumentBuilder()
     .setTitle('Biblioteca Comunitária')
-    .setDescription('Acervo, empréstimos e relatórios da Biblioteca Comunitária.')
+    .setDescription(
+      'Acervo, empréstimos e relatórios da Biblioteca Comunitária.',
+    )
     .setVersion('1.0')
     .build();
   SwaggerModule.setup('docs', app, SwaggerModule.createDocument(app, docs));

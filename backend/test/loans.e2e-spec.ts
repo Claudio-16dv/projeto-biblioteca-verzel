@@ -128,7 +128,9 @@ describe('Loans (e2e)', () => {
         await emprestar(book.id, reader.id).expect(201);
       }
 
-      const { body } = (await emprestar(books[3].id, reader.id).expect(409)) as {
+      const { body } = (await emprestar(books[3].id, reader.id).expect(
+        409,
+      )) as {
         body: ErrorResponse;
       };
 
@@ -158,7 +160,9 @@ describe('Loans (e2e)', () => {
   describe('PATCH /loans/:id/return', () => {
     it('encerra o emprestimo e repoe a copia', async () => {
       const [reader, book] = await Promise.all([createReader(), createBook(1)]);
-      const { body: loan } = (await emprestar(book.id, reader.id).expect(201)) as {
+      const { body: loan } = (await emprestar(book.id, reader.id).expect(
+        201,
+      )) as {
         body: LoanResponse;
       };
 
@@ -173,7 +177,9 @@ describe('Loans (e2e)', () => {
 
     it('recusa devolver um emprestimo ja devolvido', async () => {
       const [reader, book] = await Promise.all([createReader(), createBook(1)]);
-      const { body: loan } = (await emprestar(book.id, reader.id).expect(201)) as {
+      const { body: loan } = (await emprestar(book.id, reader.id).expect(
+        201,
+      )) as {
         body: LoanResponse;
       };
       await devolver(loan.id).expect(200);
