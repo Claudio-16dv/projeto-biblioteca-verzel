@@ -7,6 +7,7 @@ import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { LoansRepository } from './loans.repository';
 import { CreateLoanDto } from './dto/create-loan.dto';
+import { LoanFilterDto } from './dto/loan-filter.dto';
 import { toLoanResponse } from './loans.mapper';
 
 const MAX_ACTIVE_LOANS_PER_USER = 3;
@@ -76,8 +77,8 @@ export class LoansService {
     return toLoanResponse(loan!);
   }
 
-  async findAll() {
-    const loans = await this.loansRepository.findAll();
+  async findAll(filter: LoanFilterDto = {}) {
+    const loans = await this.loansRepository.findWithFilters(filter);
     return loans.map(toLoanResponse);
   }
 }
