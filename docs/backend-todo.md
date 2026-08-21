@@ -42,6 +42,7 @@ backend/
 - [ ] `main.ts` — `app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }))`
 - [ ] `main.ts` — `await app.listen(3001)`
 - [ ] `common/filters/http-exception.filter.ts`
+  - [ ] normalizar `message` para string — o `ValidationPipe` devolve array, `HttpException` devolve string
 - [ ] `docker-compose.yml` — serviço `postgres` com volume nomeado
 - [ ] `.env.example` (`DATABASE_URL`, `PORT=3001`) · `.gitignore` · `.dockerignore`
 - [ ] `npm i prisma @prisma/client` + `npx prisma init --datasource-provider postgresql`
@@ -49,6 +50,7 @@ backend/
 - [ ] `npx prisma migrate dev --name init`
 - [ ] `PrismaService extends PrismaClient` + `PrismaModule` global
 - [ ] `prisma/seed.ts` — 8 livros + 3 leitores, registrado no `package.json`
+- [ ] `nest g resource users` — `@Get('/users')` → `[{ id, name }]` (front escolhe o leitor)
 
 ### Schema
 
@@ -120,6 +122,8 @@ model Loan {
 - [ ] `return` também em transação — `returnedAt = now()` + `increment: 1`
 - [ ] Devolver empréstimo já devolvido → `ConflictException`
 - [ ] `@Post('/loans')` e `@Patch('/loans/:id/return')` retornam o livro com `availableCopies` atualizado
+- [ ] `loans.repository.ts` — `findAll()` com `include: { book: true, user: true }`
+- [ ] `@Get('/loans')` sem filtro — o front precisa dela já no BIBL-2 pro botão "Devolver"
 
 ## BIBL-3 — Ranking `3pts`
 
@@ -136,12 +140,12 @@ model Loan {
   - [ ] `userId` — `@Type(() => Number)`, query param chega como string
   - [ ] `from` / `to` — `@IsDateString()`
   - [ ] `status` — `@IsIn(['ativo', 'devolvido'])`
-- [ ] `loans.repository.ts` — `findWithFilters(filtro)`, função única (BIBL-5 reusa)
+- [ ] `loans.repository.ts` — `findWithFilters(filtro)` substitui o `findAll()` do BIBL-2 (BIBL-5 reusa)
   - [ ] filtros combinam em `AND`; sem filtro → retorna tudo
   - [ ] `ativo` → `returnedAt: null` · `devolvido` → `returnedAt: { not: null }`
   - [ ] `to` inclusivo → `loanedAt: { lt: <dia seguinte 00:00> }`
   - [ ] `include: { book: true, user: true }`
-- [ ] `@Get('/loans')` → `[{ id, book, user, loanedAt, status }]`
+- [ ] `@Get('/loans')` — adiciona os filtros à rota criada no BIBL-2
 - [ ] Nenhum resultado → `200` com `[]`
 - [ ] `loanedAt` em UTC, filtro chega como `YYYY-MM-DD`
 
@@ -172,7 +176,7 @@ model Loan {
 | `GET` | `/users` | `[{ id, name }]` |
 | `POST` | `/loans` | empréstimo + livro atualizado |
 | `PATCH` | `/loans/:id/return` | empréstimo + livro atualizado |
-| `GET` | `/loans?userId&from&to&status` | `[{ id, book, user, loanedAt, status }]` |
+| `GET` | `/loans` — filtros opcionais `userId`, `from`, `to`, `status` | `[{ id, book, user, loanedAt, status }]` |
 | `GET` | `/loans/export?<mesmos filtros>` | `text/csv` |
 
 ### Erros
@@ -180,6 +184,8 @@ model Loan {
 ```json
 { "statusCode": 409, "message": "Livro sem cópias disponíveis", "error": "Conflict" }
 ```
+
+`message` é sempre string — o Exception Filter normaliza o array que o `ValidationPipe` devolve.
 
 | Situação | Status | Exception |
 |---|---|---|
