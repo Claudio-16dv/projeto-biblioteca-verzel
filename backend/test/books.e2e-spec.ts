@@ -106,7 +106,7 @@ describe('Books (e2e)', () => {
         .send({ ...validBook, title: '' })
         .expect(400)) as { body: ErrorResponse };
 
-      expect(body.message).toBe('Titulo e obrigatorio.');
+      expect(body.message).toBe('Título é obrigatório.');
     });
 
     it('recusa titulo composto apenas de espacos', async () => {
@@ -115,7 +115,7 @@ describe('Books (e2e)', () => {
         .send({ ...validBook, title: '   ' })
         .expect(400)) as { body: ErrorResponse };
 
-      expect(body.message).toBe('Titulo e obrigatorio.');
+      expect(body.message).toBe('Título é obrigatório.');
     });
 
     it('recusa ano no futuro', async () => {
@@ -124,7 +124,7 @@ describe('Books (e2e)', () => {
         .send({ ...validBook, publicationYear: NEXT_YEAR })
         .expect(400)) as { body: ErrorResponse };
 
-      expect(body.message).toBe('Ano de publicacao nao pode estar no futuro.');
+      expect(body.message).toBe('Ano de publicação não pode estar no futuro.');
     });
 
     it('recusa quantidade de copias negativa', async () => {
@@ -133,7 +133,7 @@ describe('Books (e2e)', () => {
         .send({ ...validBook, copies: -1 })
         .expect(400)) as { body: ErrorResponse };
 
-      expect(body.message).toBe('Quantidade de copias nao pode ser negativa.');
+      expect(body.message).toBe('Quantidade de cópias não pode ser negativa.');
     });
 
     it('devolve message como string mesmo com varias falhas de validacao', async () => {

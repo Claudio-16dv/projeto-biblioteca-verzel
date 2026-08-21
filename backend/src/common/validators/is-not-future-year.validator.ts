@@ -22,7 +22,7 @@ export function IsNotFutureYear(options?: ValidationOptions) {
           return typeof value === 'number' && value <= new Date().getFullYear();
         },
         defaultMessage(args: ValidationArguments): string {
-          return `${args.property} nao pode ser maior que ${new Date().getFullYear()}`;
+          return `${args.property} não pode ser maior que ${new Date().getFullYear()}`;
         },
       },
     });
