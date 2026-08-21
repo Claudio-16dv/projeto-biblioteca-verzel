@@ -21,6 +21,9 @@ type ErrorBody = {
  * HttpException lancadas pelos services devolvem string. O frontend renderiza
  * `message` direto na tela, entao aqui o array e achatado em uma unica frase.
  */
+// Declarado como number para a comparacao nao cruzar tipos com o enum HttpStatus.
+const SERVER_ERROR_STATUS: number = HttpStatus.INTERNAL_SERVER_ERROR;
+
 @Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
   private readonly logger = new Logger(HttpExceptionFilter.name);
@@ -29,7 +32,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     const response = host.switchToHttp().getResponse<Response>();
     const body = this.toErrorBody(exception);
 
-    if (body.statusCode >= HttpStatus.INTERNAL_SERVER_ERROR) {
+    if (body.statusCode >= SERVER_ERROR_STATUS) {
       this.logger.error(body.message, (exception as Error)?.stack);
     }
 
