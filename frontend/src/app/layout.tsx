@@ -29,6 +29,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <nav className="border-b">
           <div className="mx-auto flex max-w-5xl gap-6 p-4 text-sm">
             <Link href="/">Acervo</Link>
+            <Link href="/ranking">Ranking</Link>
             <Link href="/relatorios">Relatórios</Link>
           </div>
         </nav>
