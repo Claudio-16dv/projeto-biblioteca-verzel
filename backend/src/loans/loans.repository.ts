@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
+import { LoanFilterDto } from './dto/loan-filter.dto';
 
 type PrismaClientOrTx = PrismaService | Prisma.TransactionClient;
 
@@ -57,8 +58,40 @@ export class LoansRepository {
     });
   }
 
-  findAll() {
+  /**
+   * BIBL-4/BIBL-5: lista empréstimos aplicando filtros opcionais combinados em
+   * AND. Sem filtro, retorna tudo. Reusada pela exportação CSV.
+   */
+  findWithFilters(filter: LoanFilterDto = {}) {
+    const where: Prisma.LoanWhereInput = {};
+
+    if (filter.userId !== undefined) {
+      where.userId = filter.userId;
+    }
+
+    if (filter.status === 'ativo') {
+      where.returnedAt = null;
+    } else if (filter.status === 'devolvido') {
+      where.returnedAt = { not: null };
+    }
+
+    // Período sobre loanedAt (UTC). Filtro chega como YYYY-MM-DD.
+    const loanedAt: Prisma.DateTimeFilter = {};
+    if (filter.from) {
+      loanedAt.gte = new Date(`${filter.from}T00:00:00.000Z`);
+    }
+    if (filter.to) {
+      // `to` inclusivo → menor que o dia seguinte às 00:00 UTC.
+      const nextDay = new Date(`${filter.to}T00:00:00.000Z`);
+      nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+      loanedAt.lt = nextDay;
+    }
+    if (Object.keys(loanedAt).length > 0) {
+      where.loanedAt = loanedAt;
+    }
+
     return this.prisma.loan.findMany({
+      where,
       include: { book: true, user: true },
       orderBy: { loanedAt: 'desc' },
     });
