@@ -15,6 +15,13 @@ type BookResponse = {
   availableCopies: number;
 };
 
+type RankingItem = {
+  id: number;
+  title: string;
+  author: string;
+  totalLoans: number;
+};
+
 type ErrorResponse = {
   statusCode: number;
   message: string;
@@ -160,6 +167,102 @@ describe('Books (e2e)', () => {
         title: 'Dom Casmurro',
         availableCopies: 3,
       });
+    });
+  });
+
+  describe('GET /books/ranking', () => {
+    const seedLoans = async () => {
+      const reader = await prisma.user.create({
+        data: { name: 'Ana Ribeiro' },
+      });
+      const [procurado, ocasional] = await Promise.all([
+        prisma.book.create({
+          data: {
+            title: 'Vidas Secas',
+            author: 'Graciliano Ramos',
+            publicationYear: 1938,
+            totalCopies: 4,
+            availableCopies: 4,
+          },
+        }),
+        prisma.book.create({
+          data: {
+            title: 'Dom Casmurro',
+            author: 'Machado de Assis',
+            publicationYear: 1899,
+            totalCopies: 3,
+            availableCopies: 3,
+          },
+        }),
+      ]);
+      // Livro nunca emprestado: nao pode aparecer no ranking.
+      await prisma.book.create({
+        data: {
+          title: 'Iracema',
+          author: 'Jose de Alencar',
+          publicationYear: 1865,
+          totalCopies: 1,
+          availableCopies: 1,
+        },
+      });
+
+      await prisma.loan.createMany({
+        data: [
+          // Devolvido tambem conta: o ranking olha o historico completo.
+          { bookId: procurado.id, userId: reader.id, returnedAt: new Date() },
+          { bookId: procurado.id, userId: reader.id, returnedAt: new Date() },
+          { bookId: ocasional.id, userId: reader.id },
+        ],
+      });
+
+      return { procurado, ocasional };
+    };
+
+    it('devolve lista vazia quando nenhum livro foi emprestado', async () => {
+      await request(app.getHttpServer())
+        .post('/books')
+        .send(validBook)
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .get('/books/ranking')
+        .expect(200)
+        .expect([]);
+    });
+
+    it('ordena do mais emprestado para o menos', async () => {
+      const { procurado, ocasional } = await seedLoans();
+
+      const { body } = (await request(app.getHttpServer())
+        .get('/books/ranking')
+        .expect(200)) as { body: RankingItem[] };
+
+      expect(body).toEqual([
+        {
+          id: procurado.id,
+          title: 'Vidas Secas',
+          author: 'Graciliano Ramos',
+          totalLoans: 2,
+        },
+        {
+          id: ocasional.id,
+          title: 'Dom Casmurro',
+          author: 'Machado de Assis',
+          totalLoans: 1,
+        },
+      ]);
+    });
+
+    it('nao inclui livros que nunca foram emprestados', async () => {
+      await seedLoans();
+
+      const { body } = (await request(app.getHttpServer())
+        .get('/books/ranking')
+        .expect(200)) as { body: RankingItem[] };
+
+      expect(body.map((item: { title: string }) => item.title)).not.toContain(
+        'Iracema',
+      );
     });
   });
 });

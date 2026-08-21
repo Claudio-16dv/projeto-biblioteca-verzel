@@ -22,6 +22,8 @@ describe('BooksService', () => {
     repository = {
       create: jest.fn(),
       findAll: jest.fn(),
+      findManyByIds: jest.fn(),
+      countLoansByBook: jest.fn(),
     } as unknown as jest.Mocked<BooksRepository>;
 
     const moduleRef = await Test.createTestingModule({
@@ -69,6 +71,61 @@ describe('BooksService', () => {
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({ totalCopies: 0, availableCopies: 0 }),
       );
+    });
+  });
+
+  describe('findRanking', () => {
+    it('devolve lista vazia quando nenhum livro foi emprestado', async () => {
+      repository.countLoansByBook.mockResolvedValue([]);
+
+      await expect(service.findRanking()).resolves.toEqual([]);
+    });
+
+    it('nao consulta livros quando nao ha emprestimos', async () => {
+      repository.countLoansByBook.mockResolvedValue([]);
+
+      await service.findRanking();
+
+      expect(repository.findManyByIds).not.toHaveBeenCalled();
+    });
+
+    it('preserva a ordem do repositorio e hidrata titulo e autor', async () => {
+      repository.countLoansByBook.mockResolvedValue([
+        { bookId: 2, totalLoans: 5 },
+        { bookId: 1, totalLoans: 2 },
+      ]);
+      repository.findManyByIds.mockResolvedValue([
+        makeBook({ id: 1, title: 'Dom Casmurro', author: 'Machado de Assis' }),
+        makeBook({ id: 2, title: 'Vidas Secas', author: 'Graciliano Ramos' }),
+      ]);
+
+      await expect(service.findRanking()).resolves.toEqual([
+        {
+          id: 2,
+          title: 'Vidas Secas',
+          author: 'Graciliano Ramos',
+          totalLoans: 5,
+        },
+        {
+          id: 1,
+          title: 'Dom Casmurro',
+          author: 'Machado de Assis',
+          totalLoans: 2,
+        },
+      ]);
+    });
+
+    it('ignora contagem cujo livro nao existe mais', async () => {
+      repository.countLoansByBook.mockResolvedValue([
+        { bookId: 1, totalLoans: 4 },
+        { bookId: 99, totalLoans: 1 },
+      ]);
+      repository.findManyByIds.mockResolvedValue([makeBook({ id: 1 })]);
+
+      const ranking = await service.findRanking();
+
+      expect(ranking).toHaveLength(1);
+      expect(ranking[0].id).toBe(1);
     });
   });
 });
