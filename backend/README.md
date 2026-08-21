@@ -1,98 +1,121 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Backend — Biblioteca Comunitária
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+API REST em **NestJS** para o desafio Biblioteca Comunitária: cadastro de livros, controle de empréstimos/devoluções, ranking de mais emprestados e relatório exportável em CSV.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+Decisões de arquitetura, contrato de API e checklist completo por história estão em [`../docs/backend-todo.md`](../docs/backend-todo.md). Este README é o guia prático de como rodar, testar e usar a API.
 
-## Description
+## Stack
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+- **NestJS** + TypeScript
+- **Prisma 6** como ORM (sem pasta `models/`, os tipos são gerados a partir do `schema.prisma`)
+- **PostgreSQL 16**
+- Validação com `class-validator`/`class-transformer` + `ValidationPipe` global
+- Erros padronizados via `HttpExceptionFilter`
 
-## Project setup
+## Funcionalidades implementadas
 
-```bash
-$ npm install
-```
+| História | Descrição | Status |
+|---|---|---|
+| BIBL-1 | Cadastro e listagem de livros | ✅ |
+| BIBL-2 | Empréstimo e devolução (limite de 3 ativos por leitor, controle de cópias) | ✅ |
+| BIBL-3 | Ranking dos livros mais emprestados | ✅ |
+| BIBL-4 | Relatório de empréstimos com filtros (leitor, período, situação) | ✅ |
+| BIBL-5 | Exportação do relatório em CSV | ✅ |
 
-## Compile and run the project
+## Como rodar
+
+O jeito recomendado é via Docker Compose, orquestrado a partir da raiz do monorepo — veja o [README raiz](../README.md) para o passo a passo completo (`docker compose up -d`, portas, variáveis de ambiente).
+
+### Sem Docker (rodando direto no host)
+
+Precisa de um Postgres acessível (pode ser o do `docker compose up -d db` da raiz, exposto em `localhost:5432`).
 
 ```bash
-# development
-$ npm run start
-
-# watch mode
-$ npm run start:dev
-
-# production mode
-$ npm run start:prod
+npm install
+cp .env.example .env        # ajuste DATABASE_URL se necessário
+npx prisma migrate deploy   # aplica a migration existente
+npm run seed                # acervo sem empréstimos
+# ou
+npm run seed:demo           # acervo + ~10 empréstimos cobrindo os cenários das histórias
+npm run start:dev           # API em http://localhost:3001 (ou PORT do .env)
 ```
 
-## Run tests
+## Scripts disponíveis
 
 ```bash
-# unit tests
-$ npm run test
+npm run start:dev    # modo watch (hot reload)
+npm run build         # build de produção
+npm run start:prod    # roda o build
 
-# e2e tests
-$ npm run test:e2e
+npm run lint           # eslint --fix
+npm run format         # prettier
 
-# test coverage
-$ npm run test:cov
+npm test               # testes unitários
+npm run test:e2e       # testes e2e (usa o banco configurado em DATABASE_URL — reseed depois)
+npm run test:cov       # cobertura
+
+npm run seed            # popula livros + leitores, acervo sem empréstimos
+npm run seed:demo       # popula livros + leitores + ~10 empréstimos (ativos e devolvidos)
 ```
 
-## Deployment
+## Estrutura
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+```text
+backend/
+├── prisma/
+│   ├── schema.prisma        # models Book, User, Loan
+│   ├── seed.ts               # acervo sem empréstimos
+│   ├── seed-catalog.ts       # dados-base reaproveitados pelos dois seeds
+│   └── seed-demo.ts          # acervo + movimentação cobrindo os critérios de aceite
+└── src/
+    ├── main.ts                bootstrap, CORS, porta
+    ├── app.module.ts           módulos raiz
+    ├── app.setup.ts            ValidationPipe + HttpExceptionFilter (compartilhado com testes e2e)
+    ├── prisma/                 PrismaService (extends PrismaClient) + PrismaModule global
+    ├── common/
+    │   ├── filters/            HttpExceptionFilter — normaliza toda resposta de erro
+    │   └── validators/         @IsNotFutureYear (validador custom do BIBL-1)
+    ├── books/                  módulo · controller · service · repository · dto/
+    ├── loans/                  módulo · controller · service · repository · export.service · mapper · dto/
+    └── users/                  módulo · controller · service
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## Contrato da API
 
-## Resources
+| Método | Rota | Retorno |
+|---|---|---|
+| `POST` | `/books` | livro criado, com `id` e `availableCopies` |
+| `GET` | `/books` | lista de livros |
+| `GET` | `/books/ranking` | `[{ id, title, author, totalLoans }]`, ordenado por total desc |
+| `GET` | `/users` | `[{ id, name }]` — alimenta o seletor de leitor |
+| `POST` | `/loans` | `{ id, book, user, loanedAt, returnedAt, status }` |
+| `PATCH` | `/loans/:id/return` | mesmo formato do `POST`, com `returnedAt` preenchido |
+| `GET` | `/loans?userId=&from=&to=&status=` | lista de empréstimos, todos os filtros opcionais e combináveis |
+| `GET` | `/loans/export?<mesmos filtros>` | CSV (`livro,usuario,data,situacao`) |
 
-Check out a few resources that may come in handy when working with NestJS:
+`status` é sempre `"ativo"` ou `"devolvido"`, derivado de `returnedAt` — não existe coluna `status` no banco. Filtros de `GET /loans` chegam como query string (`from`/`to` no formato `YYYY-MM-DD`, `to` inclusivo).
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### Erros
 
-## Support
+Toda resposta de erro segue o mesmo formato:
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+```json
+{ "statusCode": 409, "message": "Livro sem cópias disponíveis", "error": "Conflict" }
+```
 
-## Stay in touch
+`message` é sempre string — o `HttpExceptionFilter` achata o array que o `ValidationPipe` devolve em validações com múltiplos campos inválidos.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+| Situação | Status |
+|---|---|
+| Título vazio, ano no futuro, cópias negativas | `400` |
+| Usuário inexistente ao emprestar / empréstimo inexistente ao devolver | `404` |
+| Livro inexistente ou sem cópias disponíveis ao emprestar | `409` |
+| Limite de 3 empréstimos ativos atingido | `409` |
+| Devolver um empréstimo já devolvido | `409` |
 
-## License
+Detalhe completo (por que cada exceção é lançada, decisões de schema, etc.) está no [`backend-todo.md`](../docs/backend-todo.md).
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## Testes
+
+- **Unitários**: invariantes de negócio de `books` e `loans` (ex.: limite de 3 empréstimos ativos, sem cópia disponível, devolução dupla, usuário inexistente).
+- **E2E** (`test/books.e2e-spec.ts`): sobe a aplicação real com o mesmo pipeline de validação/erro do `main.ts` (via `app.setup.ts`) contra o banco configurado em `DATABASE_URL`.
