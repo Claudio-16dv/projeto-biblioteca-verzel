@@ -11,21 +11,21 @@ const trim = ({ value }: { value: unknown }): unknown =>
  */
 export class CreateBookDto {
   @Transform(trim)
-  @IsString({ message: 'Titulo deve ser um texto.' })
-  @IsNotEmpty({ message: 'Titulo e obrigatorio.' })
+  @IsString({ message: 'Título deve ser um texto.' })
+  @IsNotEmpty({ message: 'Título é obrigatório.' })
   title: string;
 
   @Transform(trim)
   @IsString({ message: 'Autor deve ser um texto.' })
-  @IsNotEmpty({ message: 'Autor e obrigatorio.' })
+  @IsNotEmpty({ message: 'Autor é obrigatório.' })
   author: string;
 
-  @IsInt({ message: 'Ano de publicacao deve ser um numero inteiro.' })
-  @IsNotFutureYear({ message: 'Ano de publicacao nao pode estar no futuro.' })
+  @IsInt({ message: 'Ano de publicação deve ser um número inteiro.' })
+  @IsNotFutureYear({ message: 'Ano de publicação não pode estar no futuro.' })
   publicationYear: number;
 
   // Zero e valido: o criterio de aceite recusa apenas quantidade negativa.
-  @IsInt({ message: 'Quantidade de copias deve ser um numero inteiro.' })
-  @Min(0, { message: 'Quantidade de copias nao pode ser negativa.' })
+  @IsInt({ message: 'Quantidade de cópias deve ser um número inteiro.' })
+  @Min(0, { message: 'Quantidade de cópias não pode ser negativa.' })
   copies: number;
 }

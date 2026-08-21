@@ -62,7 +62,8 @@ host nao chega no container. Instalar dependencia e sempre nesta ordem:
 ```bash
 npm i --package-lock-only <pacote> --prefix backend   # atualiza package.json e lock
 docker compose build backend                          # o npm ci da imagem instala
-docker compose up -d
+docker compose rm -sfv backend                        # descarta o node_modules antigo
+docker compose up -d backend
 ```
 
 ```bash
@@ -72,6 +73,7 @@ docker compose exec backend npm run seed                 # acervo, zero empresti
 docker compose exec backend npm run seed:demo            # acervo + movimentacao
 docker compose exec backend npm test                     # unitarios
 docker compose exec backend npm run test:e2e             # e2e (limpa o banco; reseede depois)
+docker build --target prod -t biblioteca-backend:prod ./backend   # valida a imagem de producao
 docker compose logs -f backend                           # acompanha
 ```
 
@@ -195,9 +197,14 @@ model Loan {
 ## Acabamento
 
 - [x] `Dockerfile` da API + serviço no compose
-- [ ] Swagger (`@nestjs/swagger`)
+  - [x] stage `build` roda `prisma generate` antes do `tsc` e de novo depois do `prune`
+  - [x] `prisma/` fora do `tsconfig.build.json`, senão a saída vira `dist/src/main.js`
+  - [x] imagem `prod` validada rodando de verdade contra o banco
+- [x] Swagger (`@nestjs/swagger`) em `/docs`, com plugin de CLI inferindo os schemas
 - [x] Testes dos invariantes do BIBL-2 (limite de 3 · zero cópias · devolução dupla)
-- [ ] `GET /books/:id` — declarar depois de `@Get('ranking')`
+  - [x] unitários no service e e2e contra o banco, exercitando a transação
+- [x] `GET /books/:id` — declarado depois de `@Get('ranking')`
+- [x] Mensagens de validação em português também nos DTOs de empréstimo
 
 ## Contrato da API
 
