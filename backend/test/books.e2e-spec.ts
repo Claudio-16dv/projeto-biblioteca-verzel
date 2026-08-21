@@ -170,6 +170,37 @@ describe('Books (e2e)', () => {
     });
   });
 
+  describe('GET /books/:id', () => {
+    it('devolve o livro cadastrado', async () => {
+      const { body: criado } = (await request(app.getHttpServer())
+        .post('/books')
+        .send(validBook)
+        .expect(201)) as { body: BookResponse };
+
+      const { body } = (await request(app.getHttpServer())
+        .get(`/books/${criado.id}`)
+        .expect(200)) as { body: BookResponse };
+
+      expect(body).toMatchObject({ id: criado.id, title: 'Dom Casmurro' });
+    });
+
+    it('devolve 404 para livro inexistente', async () => {
+      const { body } = (await request(app.getHttpServer())
+        .get('/books/999999')
+        .expect(404)) as { body: ErrorResponse };
+
+      expect(body.message).toBe('Livro não encontrado.');
+    });
+
+    it('devolve 400 quando o identificador nao e numerico', async () => {
+      const { body } = (await request(app.getHttpServer())
+        .get('/books/abc')
+        .expect(400)) as { body: ErrorResponse };
+
+      expect(body.message).toBe('Identificador do livro deve ser um número.');
+    });
+  });
+
   describe('GET /books/ranking', () => {
     const seedLoans = async () => {
       const reader = await prisma.user.create({

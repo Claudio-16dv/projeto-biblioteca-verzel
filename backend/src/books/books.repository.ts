@@ -27,6 +27,10 @@ export class BooksRepository {
     return this.prisma.book.findMany({ orderBy: { title: 'asc' } });
   }
 
+  findById(id: number): Promise<Book | null> {
+    return this.prisma.book.findUnique({ where: { id } });
+  }
+
   findManyByIds(ids: number[]): Promise<Book[]> {
     return this.prisma.book.findMany({ where: { id: { in: ids } } });
   }
