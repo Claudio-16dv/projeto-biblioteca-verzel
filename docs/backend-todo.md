@@ -129,10 +129,10 @@ model Loan {
 
 ## BIBL-2 — Empréstimo e devolução `5pts`
 
-- [ ] `nest g resource loans`
-- [ ] `dto/create-loan.dto.ts` — `bookId`, `userId`
-- [ ] `loans.repository.ts` — `create`, `countActiveByUser`, `markReturned`, `findById`
-- [ ] `loans.service.ts` — `create` dentro de `prisma.$transaction`:
+- [x] `nest g resource loans`
+- [x] `dto/create-loan.dto.ts` — `bookId`, `userId`
+- [x] `loans.repository.ts` — `create`, `countActiveByUser`, `markReturned`, `findById`, `findByIdWithRelations`
+- [x] `loans.service.ts` — `create` dentro de `prisma.$transaction`:
 
   ```ts
   const ativos = await tx.loan.count({ where: { userId, returnedAt: null } });
@@ -147,11 +147,14 @@ model Loan {
   return tx.loan.create({ data: { bookId, userId } });
   ```
 
-- [ ] `return` também em transação — `returnedAt = now()` + `increment: 1`
-- [ ] Devolver empréstimo já devolvido → `ConflictException`
-- [ ] `@Post('/loans')` e `@Patch('/loans/:id/return')` retornam o livro com `availableCopies` atualizado
-- [ ] `loans.repository.ts` — `findAll()` com `include: { book: true, user: true }`
-- [ ] `@Get('/loans')` sem filtro — o front precisa dela já no BIBL-2 pro botão "Devolver"
+  - Livro inexistente cai no mesmo `409` acima (a `updateMany` não distingue "não existe" de "sem cópia"). FK de usuário inexistente é capturada (`P2003`) e vira `404`.
+- [x] `return` também em transação — `returnedAt = now()` + `increment: 1`
+- [x] Devolver empréstimo já devolvido → `ConflictException`
+- [x] Devolver empréstimo inexistente → `NotFoundException`
+- [x] `@Post('/loans')` e `@Patch('/loans/:id/return')` retornam o empréstimo com `book`/`user` atualizados e `status` derivado
+- [x] `loans.repository.ts` — `findAll()` com `include: { book: true, user: true }`
+- [x] `@Get('/loans')` sem filtro — o front precisa dela já no BIBL-2 pro botão "Devolver"
+- [x] testes unitários dos invariantes (limite de 3 · zero cópias · devolução dupla · usuário inexistente) — `loans.service.spec.ts`
 
 ## BIBL-3 — Ranking `3pts`
 
@@ -193,7 +196,7 @@ model Loan {
 
 - [ ] `Dockerfile` da API + serviço no compose
 - [ ] Swagger (`@nestjs/swagger`)
-- [ ] Testes dos invariantes do BIBL-2 (limite de 3 · zero cópias · devolução dupla)
+- [x] Testes dos invariantes do BIBL-2 (limite de 3 · zero cópias · devolução dupla)
 - [ ] `GET /books/:id` — declarar depois de `@Get('ranking')`
 
 ## Contrato da API
