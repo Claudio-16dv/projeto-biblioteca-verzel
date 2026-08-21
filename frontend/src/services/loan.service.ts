@@ -1,6 +1,10 @@
 import { api } from "@/lib/api";
 import type { Loan } from "@/types/loan";
 
+export async function listLoans(): Promise<Loan[]> {
+  return api<Loan[]>("/loans");
+}
+
 export async function createLoan(
   bookId: number,
   userId: number,
