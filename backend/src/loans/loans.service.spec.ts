@@ -134,7 +134,10 @@ describe('LoansService', () => {
 
       expect(result.status).toBe('devolvido');
       expect(repository.markReturned).toHaveBeenCalledWith(10, {});
-      expect(repository.incrementAvailableCopies).toHaveBeenCalledWith(book.id, {});
+      expect(repository.incrementAvailableCopies).toHaveBeenCalledWith(
+        book.id,
+        {},
+      );
     });
 
     it('throws NotFoundException for an unknown loan', async () => {
