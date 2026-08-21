@@ -14,3 +14,10 @@ export type CreateBookDto = {
   publicationYear: number;
   copies: number;
 };
+
+export type RankedBook = {
+  id: number;
+  title: string;
+  author: string;
+  totalLoans: number;
+};
