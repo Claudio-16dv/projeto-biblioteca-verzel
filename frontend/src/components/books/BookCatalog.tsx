@@ -7,6 +7,7 @@ import type { User } from "@/types/user";
 import { BookList } from "./BookList";
 import { ReaderSelect } from "@/components/loans/ReaderSelect";
 import { createLoan } from "@/services/loan.service";
+import { FeedbackMessage } from "@/components/ui/feedback-message";
 
 type BookCatalogProps = {
   books: Book[];
@@ -49,11 +50,7 @@ export function BookCatalog({ books, users }: BookCatalogProps) {
         <p className="text-sm">Selecione um leitor para emprestar livros</p>
       )}
 
-      {loanError && (
-        <p role="alert" className="text-sm text-red-600">
-          {loanError}
-        </p>
-      )}
+      {loanError && <FeedbackMessage variant="error" message={loanError} />}
 
       {books.length === 0 && <p>Nenhum livro cadastrado</p>}
 
