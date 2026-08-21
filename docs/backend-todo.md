@@ -201,16 +201,18 @@ model Loan {
 
 ## Contrato da API
 
-| Método | Rota | Retorno |
-|---|---|---|
-| `POST` | `/books` | livro criado com `id` |
-| `GET` | `/books` | lista com `availableCopies` |
-| `GET` | `/books/ranking` | `[{ id, title, author, totalLoans }]` |
-| `GET` | `/users` | `[{ id, name }]` |
-| `POST` | `/loans` | empréstimo + livro atualizado |
-| `PATCH` | `/loans/:id/return` | empréstimo + livro atualizado |
-| `GET` | `/loans` — filtros opcionais `userId`, `from`, `to`, `status` | `[{ id, book, user, loanedAt, status }]` |
-| `GET` | `/loans/export?<mesmos filtros>` | `text/csv` |
+| Método | Rota | Retorno | Status |
+|---|---|---|---|
+| `POST` | `/books` | livro criado com `id` | ✅ |
+| `GET` | `/books` | lista com `availableCopies` | ✅ |
+| `GET` | `/books/ranking` | `[{ id, title, author, totalLoans }]` | ✅ |
+| `GET` | `/users` | `[{ id, name }]` | ✅ |
+| `POST` | `/loans` | `{ id, book, user, loanedAt, returnedAt, status }` (loan achatado, `book`/`user` já atualizados) | ✅ |
+| `PATCH` | `/loans/:id/return` | mesmo formato do `POST /loans`, com `returnedAt` preenchido e `status: "devolvido"` | ✅ |
+| `GET` | `/loans` | `[{ id, book, user, loanedAt, returnedAt, status }]` — **sem filtros ainda** | ✅ (filtros `userId`/`from`/`to`/`status` ficam pro BIBL-4) |
+| `GET` | `/loans/export?<mesmos filtros>` | `text/csv` | ⬜ BIBL-5 |
+
+`status` é sempre `"ativo"` ou `"devolvido"`, derivado de `returnedAt` (decisão #5).
 
 ### Erros
 
@@ -223,7 +225,8 @@ model Loan {
 | Situação | Status | Exception |
 |---|---|---|
 | Título vazio, ano futuro, cópias negativa | `400` | `BadRequestException` (via `ValidationPipe`) |
-| Livro, usuário ou empréstimo inexistente | `404` | `NotFoundException` |
-| Sem cópias disponíveis | `409` | `ConflictException` |
+| Usuário inexistente ao emprestar | `404` | `NotFoundException` (violação de FK capturada, `P2003`) |
+| Empréstimo inexistente ao devolver | `404` | `NotFoundException` |
+| Livro inexistente **ou** sem cópias disponíveis ao emprestar | `409` | `ConflictException` — `updateMany` não distingue as duas causas, então livro inexistente cai no mesmo erro de "sem cópia" |
 | Limite de 3 empréstimos ativos | `409` | `ConflictException` |
 | Devolver empréstimo já devolvido | `409` | `ConflictException` |
