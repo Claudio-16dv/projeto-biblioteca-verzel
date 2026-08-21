@@ -169,32 +169,32 @@ model Loan {
 
 ## BIBL-4 — Relatório `5pts`
 
-- [ ] `dto/loan-filter.dto.ts` — todos `@IsOptional()`
-  - [ ] `userId` — `@Type(() => Number)`, query param chega como string
-  - [ ] `from` / `to` — `@IsDateString()`
-  - [ ] `status` — `@IsIn(['ativo', 'devolvido'])`
-- [ ] `loans.repository.ts` — `findWithFilters(filtro)` substitui o `findAll()` do BIBL-2 (BIBL-5 reusa)
-  - [ ] filtros combinam em `AND`; sem filtro → retorna tudo
-  - [ ] `ativo` → `returnedAt: null` · `devolvido` → `returnedAt: { not: null }`
-  - [ ] `to` inclusivo → `loanedAt: { lt: <dia seguinte 00:00> }`
-  - [ ] `include: { book: true, user: true }`
-- [ ] `@Get('/loans')` — adiciona os filtros à rota criada no BIBL-2
-- [ ] Nenhum resultado → `200` com `[]`
-- [ ] `loanedAt` em UTC, filtro chega como `YYYY-MM-DD`
+- [x] `dto/loan-filter.dto.ts` — todos `@IsOptional()`
+  - [x] `userId` — `@Type(() => Number)`, query param chega como string
+  - [x] `from` / `to` — `@IsDateString()`
+  - [x] `status` — `@IsIn(['ativo', 'devolvido'])`
+- [x] `loans.repository.ts` — `findWithFilters(filtro)` substitui o `findAll()` do BIBL-2 (BIBL-5 reusa)
+  - [x] filtros combinam em `AND`; sem filtro → retorna tudo
+  - [x] `ativo` → `returnedAt: null` · `devolvido` → `returnedAt: { not: null }`
+  - [x] `to` inclusivo → `loanedAt: { lt: <dia seguinte 00:00> }`
+  - [x] `include: { book: true, user: true }`
+- [x] `@Get('/loans')` — adiciona os filtros à rota criada no BIBL-2
+- [x] Nenhum resultado → `200` com `[]`
+- [x] `loanedAt` em UTC, filtro chega como `YYYY-MM-DD`
 
 ## BIBL-5 — Exportação CSV `5pts`
 
-- [ ] `export.service.ts` — consome `loans.repository.findWithFilters()`
-- [ ] Escape: campo com `,`, `"` ou quebra de linha vai entre aspas; aspas internas duplicadas
-- [ ] Cabeçalho sempre presente: `livro,usuario,data,situacao`
-- [ ] `@Get('/loans/export')` com o mesmo `LoanFilterDto`
-- [ ] `Content-Type: text/csv; charset=utf-8`
-- [ ] `Content-Disposition: attachment; filename="emprestimos.csv"`
-- [ ] Filtro sem resultado → `200` com só o cabeçalho
+- [x] `export.service.ts` — consome `loans.repository.findWithFilters()`
+- [x] Escape: campo com `,`, `"` ou quebra de linha vai entre aspas; aspas internas duplicadas
+- [x] Cabeçalho sempre presente: `livro,usuario,data,situacao`
+- [x] `@Get('/loans/export')` com o mesmo `LoanFilterDto`
+- [x] `Content-Type: text/csv; charset=utf-8`
+- [x] `Content-Disposition: attachment; filename="emprestimos.csv"`
+- [x] Filtro sem resultado → `200` com só o cabeçalho
 
 ## Acabamento
 
-- [ ] `Dockerfile` da API + serviço no compose
+- [x] `Dockerfile` da API + serviço no compose
 - [ ] Swagger (`@nestjs/swagger`)
 - [x] Testes dos invariantes do BIBL-2 (limite de 3 · zero cópias · devolução dupla)
 - [ ] `GET /books/:id` — declarar depois de `@Get('ranking')`
@@ -209,8 +209,8 @@ model Loan {
 | `GET` | `/users` | `[{ id, name }]` | ✅ |
 | `POST` | `/loans` | `{ id, book, user, loanedAt, returnedAt, status }` (loan achatado, `book`/`user` já atualizados) | ✅ |
 | `PATCH` | `/loans/:id/return` | mesmo formato do `POST /loans`, com `returnedAt` preenchido e `status: "devolvido"` | ✅ |
-| `GET` | `/loans` | `[{ id, book, user, loanedAt, returnedAt, status }]` — **sem filtros ainda** | ✅ (filtros `userId`/`from`/`to`/`status` ficam pro BIBL-4) |
-| `GET` | `/loans/export?<mesmos filtros>` | `text/csv` | ⬜ BIBL-5 |
+| `GET` | `/loans?userId=&from=&to=&status=` | `[{ id, book, user, loanedAt, returnedAt, status }]`, filtros opcionais e combináveis | ✅ |
+| `GET` | `/loans/export?<mesmos filtros>` | `text/csv` (`livro,usuario,data,situacao`) | ✅ |
 
 `status` é sempre `"ativo"` ou `"devolvido"`, derivado de `returnedAt` (decisão #5).
 
