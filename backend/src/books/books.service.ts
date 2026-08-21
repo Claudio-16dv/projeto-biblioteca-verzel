@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { Book } from '@prisma/client';
 import { BooksRepository } from './books.repository';
 import { CreateBookDto } from './dto/create-book.dto';
@@ -30,6 +30,16 @@ export class BooksService {
 
   findAll(): Promise<Book[]> {
     return this.booksRepository.findAll();
+  }
+
+  async findById(id: number): Promise<Book> {
+    const book = await this.booksRepository.findById(id);
+
+    if (!book) {
+      throw new NotFoundException('Livro não encontrado.');
+    }
+
+    return book;
   }
 
   /** BIBL-3: livros ordenados pela quantidade de vezes que foram emprestados. */

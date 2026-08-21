@@ -1,3 +1,4 @@
+import { NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { Book } from '@prisma/client';
 import { BooksRepository } from './books.repository';
@@ -22,6 +23,7 @@ describe('BooksService', () => {
     repository = {
       create: jest.fn(),
       findAll: jest.fn(),
+      findById: jest.fn(),
       findManyByIds: jest.fn(),
       countLoansByBook: jest.fn(),
     } as unknown as jest.Mocked<BooksRepository>;
@@ -71,6 +73,21 @@ describe('BooksService', () => {
       expect(repository.create).toHaveBeenCalledWith(
         expect.objectContaining({ totalCopies: 0, availableCopies: 0 }),
       );
+    });
+  });
+
+  describe('findById', () => {
+    it('devolve o livro quando ele existe', async () => {
+      const book = makeBook({ id: 7 });
+      repository.findById.mockResolvedValue(book);
+
+      await expect(service.findById(7)).resolves.toBe(book);
+    });
+
+    it('lanca NotFoundException quando o livro nao existe', async () => {
+      repository.findById.mockResolvedValue(null);
+
+      await expect(service.findById(999)).rejects.toThrow(NotFoundException);
     });
   });
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createBook } from "@/services/book.service";
@@ -9,12 +10,11 @@ import {
   type CreateBookInput,
   type CreateBookOutput,
 } from "@/schemas/book.schema";
+import { FeedbackMessage } from "@/components/ui/feedback-message";
+import { Button } from "@/components/ui/button";
 
-type BookFormProps = {
-  onCreated: () => void;
-};
-
-export function BookForm({ onCreated }: BookFormProps) {
+export function BookForm() {
+  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -32,7 +32,7 @@ export function BookForm({ onCreated }: BookFormProps) {
     try {
       await createBook(data);
       reset();
-      onCreated();
+      router.refresh();
     } catch (err) {
       setServerError(
         err instanceof Error ? err.message : "Erro ao cadastrar o livro",
@@ -108,20 +108,11 @@ export function BookForm({ onCreated }: BookFormProps) {
         )}
       </div>
 
-      {serverError && (
-        <p role="alert" className="text-sm text-red-600">
-          {serverError}
-        </p>
-      )}
+      {serverError && <FeedbackMessage variant="error" message={serverError} />}
 
-      <button
-        type="button"
-        onClick={handleSubmit(onSubmit)}
-        disabled={isSubmitting}
-        className="rounded bg-teal-700 px-4 py-2 text-white disabled:opacity-50"
-      >
+      <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
         {isSubmitting ? "Cadastrando..." : "Cadastrar"}
-      </button>
+      </Button>
     </div>
   );
 }

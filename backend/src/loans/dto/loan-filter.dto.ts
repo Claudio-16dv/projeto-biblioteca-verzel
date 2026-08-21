@@ -8,19 +8,24 @@ import { IsDateString, IsIn, IsInt, IsOptional } from 'class-validator';
 export class LoanFilterDto {
   @IsOptional()
   @Type(() => Number)
-  @IsInt()
+  @IsInt({ message: 'Identificador do leitor deve ser um número inteiro.' })
   userId?: number;
 
   // Datas no formato YYYY-MM-DD.
   @IsOptional()
-  @IsDateString()
+  @IsDateString(
+    {},
+    { message: 'Data inicial deve estar no formato AAAA-MM-DD.' },
+  )
   from?: string;
 
   @IsOptional()
-  @IsDateString()
+  @IsDateString({}, { message: 'Data final deve estar no formato AAAA-MM-DD.' })
   to?: string;
 
   @IsOptional()
-  @IsIn(['ativo', 'devolvido'])
+  @IsIn(['ativo', 'devolvido'], {
+    message: 'Situação deve ser "ativo" ou "devolvido".',
+  })
   status?: 'ativo' | 'devolvido';
 }

@@ -29,7 +29,12 @@ FROM base AS build
 ENV NODE_ENV=production
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npm run build && npm prune --omit=dev
+# O Prisma Client precisa existir antes do tsc (os tipos das entidades saem
+# dele) e de novo depois do prune, que remove o diretorio gerado.
+RUN npx prisma generate \
+ && npm run build \
+ && npm prune --omit=dev \
+ && npx prisma generate
 
 # ---- Production ----
 FROM node:${NODE_VERSION} AS prod
