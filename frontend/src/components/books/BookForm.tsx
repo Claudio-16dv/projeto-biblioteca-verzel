@@ -10,6 +10,8 @@ import {
   type CreateBookInput,
   type CreateBookOutput,
 } from "@/schemas/book.schema";
+import { FeedbackMessage } from "@/components/ui/feedback-message";
+import { Button } from "@/components/ui/button";
 
 export function BookForm() {
   const router = useRouter();
@@ -106,20 +108,11 @@ export function BookForm() {
         )}
       </div>
 
-      {serverError && (
-        <p role="alert" className="text-sm text-red-600">
-          {serverError}
-        </p>
-      )}
+      {serverError && <FeedbackMessage variant="error" message={serverError} />}
 
-      <button
-        type="button"
-        onClick={handleSubmit(onSubmit)}
-        disabled={isSubmitting}
-        className="rounded bg-teal-700 px-4 py-2 text-white disabled:opacity-50"
-      >
+      <Button onClick={handleSubmit(onSubmit)} disabled={isSubmitting}>
         {isSubmitting ? "Cadastrando..." : "Cadastrar"}
-      </button>
+      </Button>
     </div>
   );
 }

@@ -4,6 +4,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import type { Loan } from "@/types/loan";
 import { returnLoan } from "@/services/loan.service";
+import { FeedbackMessage } from "@/components/ui/feedback-message";
+import { Button } from "@/components/ui/button";
 
 type LoanTableProps = {
   loans: Loan[];
@@ -36,11 +38,7 @@ export function LoanTable({ loans }: LoanTableProps) {
 
   return (
     <div className="space-y-3">
-      {error && (
-        <p role="alert" className="text-sm text-red-600">
-          {error}
-        </p>
-      )}
+      {error && <FeedbackMessage variant="error" message={error} />}
 
       <table className="w-full text-left text-sm">
         <caption className="sr-only">Empréstimos ativos</caption>
@@ -69,14 +67,14 @@ export function LoanTable({ loans }: LoanTableProps) {
                 {new Date(loan.loanedAt).toLocaleDateString("pt-BR")}
               </td>
               <td className="p-3">
-                <button
-                  type="button"
+                <Button
                   onClick={() => handleReturn(loan.id)}
                   disabled={returningLoanId === loan.id}
-                  className="rounded border px-3 py-1 text-sm disabled:opacity-50"
+                  variant="outline"
+                  size="sm"
                 >
                   {returningLoanId === loan.id ? "Devolvendo..." : "Devolver"}
-                </button>
+                </Button>
               </td>
             </tr>
           ))}

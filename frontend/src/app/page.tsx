@@ -7,6 +7,7 @@ import { LoanTable } from "@/components/loans/LoanTable";
 import type { Book } from "@/types/book";
 import type { User } from "@/types/user";
 import type { Loan } from "@/types/loan";
+import { FeedbackMessage } from "@/components/ui/feedback-message";
 
 export const dynamic = "force-dynamic";
 
@@ -34,7 +35,7 @@ export default async function HomePage() {
       <section className="space-y-4">
         <h1 className="text-2xl font-medium">Acervo</h1>
 
-        {error && <p role="alert">{error}</p>}
+        {error && <FeedbackMessage variant="error" message={error} />}
         {!error && <BookCatalog books={books} users={users} />}
       </section>
 

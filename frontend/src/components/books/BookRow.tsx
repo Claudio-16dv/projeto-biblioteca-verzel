@@ -1,6 +1,7 @@
 "use client";
 
 import type { Book } from "@/types/book";
+import { Button } from "@/components/ui/button";
 
 type BookRowProps = {
   book: Book;
@@ -23,14 +24,13 @@ export function BookRow({ book, canLoan, isLoaning, onLoan }: BookRowProps) {
           : `${book.availableCopies} de ${book.totalCopies}`}
       </td>
       <td className="p-3">
-        <button
-          type="button"
+        <Button
           onClick={() => onLoan(book.id)}
           disabled={isUnavailable || !canLoan || isLoaning}
-          className="rounded bg-teal-700 px-3 py-1 text-sm text-white disabled:opacity-50"
+          size="sm"
         >
           {isLoaning ? "Emprestando..." : "Emprestar"}
-        </button>
+        </Button>
       </td>
     </tr>
   );
