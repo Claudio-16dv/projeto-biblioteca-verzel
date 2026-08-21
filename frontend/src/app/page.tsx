@@ -8,6 +8,8 @@ import type { Book } from "@/types/book";
 import type { User } from "@/types/user";
 import type { Loan } from "@/types/loan";
 import { FeedbackMessage } from "@/components/ui/feedback-message";
+import Link from "next/link";
+import { buttonVariants } from "@/components/ui/button";
 
 export const dynamic = "force-dynamic";
 
@@ -34,6 +36,12 @@ export default async function HomePage() {
     <main className="mx-auto max-w-5xl space-y-8 p-6">
       <section className="space-y-4">
         <h1 className="text-2xl font-medium">Acervo</h1>
+        <Link
+          href="/ranking"
+          className={buttonVariants({ variant: "outline", size: "sm" })}
+        >
+          Ver ranking
+        </Link>
 
         {error && <FeedbackMessage variant="error" message={error} />}
         {!error && <BookCatalog books={books} users={users} />}
