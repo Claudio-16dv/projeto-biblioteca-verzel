@@ -19,6 +19,8 @@ FROM base AS dev
 ENV NODE_ENV=development
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Gera o Prisma Client na imagem para o start:dev nao falhar antes da migration.
+RUN npx prisma generate
 EXPOSE 3000
 CMD ["npm", "run", "start:dev"]
 
