@@ -48,6 +48,9 @@ services:
     environment:
       NODE_ENV: development
       NEXT_PUBLIC_API_URL: http://localhost:${API_PORT:-3001}
+      # Server Components fazem o fetch de dentro da rede do compose, onde
+      # localhost seria o proprio frontend.
+      API_URL: http://backend:3000
       # File watching confiavel em bind mounts no Windows/WSL2
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"

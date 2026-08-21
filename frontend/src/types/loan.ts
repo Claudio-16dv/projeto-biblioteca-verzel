@@ -11,3 +11,11 @@ export type Loan = {
   returnedAt: string | null;
   status: LoanStatus;
 };
+
+/** Filtros do relatório (BIBL-4) e da exportação CSV (BIBL-5). */
+export type LoanFilters = {
+  userId?: number;
+  from?: string;
+  to?: string;
+  status?: LoanStatus;
+};
