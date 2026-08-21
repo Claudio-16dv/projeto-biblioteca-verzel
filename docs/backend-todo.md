@@ -51,6 +51,7 @@ backend/
 - [x] `npx prisma migrate dev --name init`
 - [x] `PrismaService extends PrismaClient` + `PrismaModule` global
 - [x] `prisma/seed.ts` — 8 livros + 3 leitores, registrado no `package.json`
+- [x] `prisma/seed-demo.ts` — acervo + 10 empréstimos cobrindo os casos das histórias
 - [x] `nest g resource users` — `@Get('/users')` → `[{ id, name }]` (front escolhe o leitor)
 
 ### Comandos
@@ -67,7 +68,10 @@ docker compose up -d
 ```bash
 docker compose up -d                                     # sobe a stack
 docker compose exec backend npx prisma migrate dev       # nova migration
-docker compose exec backend npm run seed                 # recarrega o acervo
+docker compose exec backend npm run seed                 # acervo, zero emprestimos
+docker compose exec backend npm run seed:demo            # acervo + movimentacao
+docker compose exec backend npm test                     # unitarios
+docker compose exec backend npm run test:e2e             # e2e (limpa o banco; reseede depois)
 docker compose logs -f backend                           # acompanha
 ```
 
@@ -110,16 +114,18 @@ model Loan {
 
 ## BIBL-1 — Cadastro e listagem `3pts`
 
-- [ ] `nest g resource books`
-- [ ] `dto/create-book.dto.ts`
-  - [ ] `title` — `@IsString() @IsNotEmpty()` + `@Transform` com `trim()`
-  - [ ] `author` — `@IsString() @IsNotEmpty()`
-  - [ ] `publicationYear` — `@IsInt() @Max(new Date().getFullYear())`
-  - [ ] `copies` — `@IsInt() @Min(0)` (0 é válido, só negativo é recusado)
-- [ ] `books.repository.ts` — `create`, `findAll`
-- [ ] `books.service.ts` — no create, `totalCopies = availableCopies = copies`
-- [ ] `@Post()` retorna o livro criado com `id`
-- [ ] `@Get()` retorna a lista com `availableCopies`
+- [x] `nest g resource books`
+- [x] `dto/create-book.dto.ts`
+  - [x] `title` — `@IsString() @IsNotEmpty()` + `@Transform` com `trim()`
+  - [x] `author` — `@IsString() @IsNotEmpty()`
+  - [x] `publicationYear` — `@IsNotFutureYear()`, validator proprio que le o ano a cada chamada
+  - [x] `copies` — `@IsInt() @Min(0)` (0 é válido, só negativo é recusado)
+  - [x] mensagens em portugues, uma por constraint (o front renderiza `message` direto)
+- [x] `books.repository.ts` — `create`, `findAll`
+- [x] `books.service.ts` — no create, `totalCopies = availableCopies = copies`
+- [x] `@Post()` retorna o livro criado com `id`
+- [x] `@Get()` retorna a lista com `availableCopies`
+- [x] testes unitarios do service + e2e cobrindo os 3 criterios de recusa
 
 ## BIBL-2 — Empréstimo e devolução `5pts`
 
@@ -149,12 +155,14 @@ model Loan {
 
 ## BIBL-3 — Ranking `3pts`
 
-- [ ] `books.repository.ts` — `findRanking()` via `prisma.loan.groupBy`
-  - [ ] agrupa por `bookId`, conta ativos + devolvidos
-  - [ ] ordena por contagem desc
-  - [ ] hidrata título e autor
-- [ ] `@Get('/books/ranking')` → `[{ id, title, author, totalLoans }]`
-- [ ] Nenhum empréstimo registrado → `200` com `[]` (acervo pode estar cheio)
+- [x] `books.repository.ts` — `countLoansByBook()` via `prisma.loan.groupBy`
+  - [x] agrupa por `bookId`, conta ativos + devolvidos
+  - [x] ordena por contagem desc
+  - [x] hidrata título e autor no service
+- [x] `@Get('/books/ranking')` → `[{ id, title, author, totalLoans }]`
+- [x] Nenhum empréstimo registrado → `200` com `[]` (acervo pode estar cheio)
+- [x] Livros nunca emprestados ficam de fora (decisão 8)
+- [x] testes unitarios do ranking + e2e com empréstimos ativos e devolvidos
 
 ## BIBL-4 — Relatório `5pts`
 
