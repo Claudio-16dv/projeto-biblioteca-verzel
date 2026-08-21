@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createBook } from "@/services/book.service";
@@ -10,11 +11,8 @@ import {
   type CreateBookOutput,
 } from "@/schemas/book.schema";
 
-type BookFormProps = {
-  onCreated: () => void;
-};
-
-export function BookForm({ onCreated }: BookFormProps) {
+export function BookForm() {
+  const router = useRouter();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const {
@@ -32,7 +30,7 @@ export function BookForm({ onCreated }: BookFormProps) {
     try {
       await createBook(data);
       reset();
-      onCreated();
+      router.refresh();
     } catch (err) {
       setServerError(
         err instanceof Error ? err.message : "Erro ao cadastrar o livro",
