@@ -12,17 +12,8 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { FeedbackMessage } from "@/components/ui/feedback-message";
-
-type RankedBook = {
-  author: string;
-  id: number;
-  title: string;
-  totalLoans: number;
-};
-
-const apiUrl =
-  process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, "") ??
-  "http://localhost:3001";
+import { listBookRanking } from "@/services/book.service";
+import type { RankedBook } from "@/types/book";
 
 const positionStyles = [
   "text-[#7f9f00]",
@@ -51,16 +42,7 @@ function RankingContent() {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchRanking = useCallback(async (signal?: AbortSignal) => {
-    const response = await fetch(`${apiUrl}/books/ranking`, {
-      cache: "no-store",
-      signal,
-    });
-
-    if (!response.ok) {
-      throw new Error(`A API respondeu com status ${response.status}`);
-    }
-
-    const data: unknown = await response.json();
+    const data: unknown = await listBookRanking(signal);
 
     if (!Array.isArray(data) || !data.every(isRankedBook)) {
       throw new Error("A API retornou um ranking em formato inválido");
