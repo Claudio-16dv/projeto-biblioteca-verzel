@@ -25,6 +25,13 @@ export default tseslint.config(
     },
   },
   {
+    // Os mocks do Jest sao jest.fn(), nao metodos de instancia: nao ha binding a perder.
+    files: ['**/*.spec.ts', '**/*.e2e-spec.ts'],
+    rules: {
+      '@typescript-eslint/unbound-method': 'off',
+    },
+  },
+  {
     rules: {
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/no-floating-promises': 'warn',

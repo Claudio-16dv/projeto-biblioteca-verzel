@@ -4,31 +4,68 @@ import {
   ExceptionFilter,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { Response } from 'express';
 
-@Catch(HttpException)
+type ErrorBody = {
+  statusCode: number;
+  message: string;
+  error: string;
+};
+
+/**
+ * Padroniza o corpo de todo erro da API em { statusCode, message, error }.
+ *
+ * O ValidationPipe devolve `message` como array de strings, enquanto as
+ * HttpException lancadas pelos services devolvem string. O frontend renderiza
+ * `message` direto na tela, entao aqui o array e achatado em uma unica frase.
+ */
+// Declarado como number para a comparacao nao cruzar tipos com o enum HttpStatus.
+const SERVER_ERROR_STATUS: number = HttpStatus.INTERNAL_SERVER_ERROR;
+
+@Catch()
 export class HttpExceptionFilter implements ExceptionFilter {
-  catch(exception: HttpException, host: ArgumentsHost) {
-    const ctx = host.switchToHttp();
-    const response = ctx.getResponse<Response>();
-    const status = exception.getStatus();
-    const body = exception.getResponse();
+  private readonly logger = new Logger(HttpExceptionFilter.name);
 
-    const bodyObj =
-      typeof body === 'string'
-        ? { message: body }
-        : (body as Record<string, unknown>);
+  catch(exception: unknown, host: ArgumentsHost): void {
+    const response = host.switchToHttp().getResponse<Response>();
+    const body = this.toErrorBody(exception);
 
-    const rawMessage = bodyObj.message;
-    const message = Array.isArray(rawMessage)
-      ? rawMessage.join(', ')
-      : ((rawMessage as string) ?? exception.message);
+    if (body.statusCode >= SERVER_ERROR_STATUS) {
+      this.logger.error(body.message, (exception as Error)?.stack);
+    }
 
-    response.status(status).json({
-      statusCode: status,
-      message,
-      error: (bodyObj.error as string) ?? HttpStatus[status] ?? 'Error',
-    });
+    response.status(body.statusCode).json(body);
+  }
+
+  private toErrorBody(exception: unknown): ErrorBody {
+    if (!(exception instanceof HttpException)) {
+      return {
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: 'Erro interno no servidor',
+        error: 'Internal Server Error',
+      };
+    }
+
+    const statusCode = exception.getStatus();
+    const payload = exception.getResponse();
+
+    if (typeof payload === 'string') {
+      return { statusCode, message: payload, error: exception.name };
+    }
+
+    const { message, error } = payload as {
+      message?: string | string[];
+      error?: string;
+    };
+
+    return {
+      statusCode,
+      message: Array.isArray(message)
+        ? message.join('; ')
+        : (message ?? exception.message),
+      error: error ?? exception.name,
+    };
   }
 }

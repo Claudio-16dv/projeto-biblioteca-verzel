@@ -1,7 +1,6 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { AppModule } from './app.module';
-import { HttpExceptionFilter } from './common/filters/http-exception.filter';
+import { configureApp } from './app.setup';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -14,13 +13,13 @@ async function bootstrap() {
   app.enableCors({
     origin: corsOrigin,
     credentials: true,
+    // BIBL-5: o frontend le o nome do arquivo do CSV neste header.
     exposedHeaders: ['Content-Disposition'],
   });
 
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
-  app.useGlobalFilters(new HttpExceptionFilter());
+  configureApp(app);
 
   const port = process.env.PORT ?? 3000;
   await app.listen(port, '0.0.0.0');
 }
-bootstrap();
+void bootstrap();
