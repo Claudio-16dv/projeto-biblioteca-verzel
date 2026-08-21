@@ -25,13 +25,13 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: development
-      # Backend roda na porta padrao do Nest (3000) dentro do container,
-      # exposto como 3001 no host para nao colidir com o frontend.
+      # Backend escuta 3000 dentro do container; o host expoe em API_PORT
+      # (default 3001) para nao colidir com o frontend.
       PORT: 3000
-      CORS_ORIGIN: http://localhost:3000
+      CORS_ORIGIN: http://localhost:${WEB_PORT:-3000}
       DATABASE_URL: postgresql://${POSTGRES_USER:-biblioteca}:${POSTGRES_PASSWORD:-biblioteca}@db:5432/${POSTGRES_DB:-biblioteca}
     ports:
-      - "3001:3000"
+      - "${API_PORT:-3001}:3000"
     volumes:
       - ./backend:/app
       - /app/node_modules
@@ -47,12 +47,12 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: development
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      NEXT_PUBLIC_API_URL: http://localhost:${API_PORT:-3001}
       # File watching confiavel em bind mounts no Windows/WSL2
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
     ports:
-      - "3000:3000"
+      - "${WEB_PORT:-3000}:3000"
     volumes:
       - ./frontend:/app
       - /app/node_modules
