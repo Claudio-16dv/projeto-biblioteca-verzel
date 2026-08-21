@@ -1,11 +1,16 @@
 "use client";
 
+import { useEffect } from "react";
 import { useBooks } from "@/hooks/use-books";
 import { BookList } from "@/components/books/BookList";
 import { BookForm } from "@/components/books/BookForm";
 
 export default function HomePage() {
   const { books, isLoading, error, refetch } = useBooks();
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   return (
     <main className="mx-auto max-w-5xl space-y-8 p-6">
